@@ -2,6 +2,7 @@
 <html>
 <head>
 <title>WebScreenCapture</title>
+<link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwBAMAAAClLOS0AAAALVBMVEUAAAAAAAAAAAAAAAAAAAAAAABmZmYAAADuAADHHBx0Xl6SSkqjPDzeBgbVDg59woX9AAAABnRSTlMAgEDw4H9vVAOvAAAAkElEQVQ4y2MYrIDVvBwNFAeAJcTLMUAhWMIcU6IELFFeloYG0stpJJF18sbNU9gkdnZ0dHRuw5TIftEBBK8xJVZ2gEDnMgyJEx1gcAxDYgZEYhqGxA2IxDUMiQ4IaCOog7AdCFcR9gemzwmHFSJ0aRCDOJMP/gTH6I6hQQAlDbOXlxfA2HSWUIc4qIgMiUENABhNDs/hacJuAAAAAElFTkSuQmCC">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;700&display=swap" rel="stylesheet">
@@ -19,12 +20,10 @@ body, html {
 
 button {
   display: inline-block;
-  margin: 20px;
-	margin-left: 0;
   font-size: 20px;
   cursor: pointer;
-	vertical-align: bottom;
 	min-width: 60px
+	min-height: 32px;
 }
 
 video {
@@ -37,34 +36,55 @@ video {
 header {
 	background: #CCC;
 	display: block;	
+	padding: 10px;
 }
 
-a#download {
+#download {
 	display: block;
 	color: #3C0;
 	background: #333;
-	padding: 10px
+	padding: 10px;
+	font-size: 20px;
 }
 
+.pad {
+	margin: 10px;
+	vertical-align: middle;
+	display: inline-block;
+}
+
+#time {
+	display: inline-block;
+	font-size: 20px;
+	min-width: 60px;
+	line-height: 32px;
+	text-align: left
+}
 </style>		
 </head>
 
 <body>
 	<header>
 
-	<button id="start">Start</button>
-	<button id="stop" style="display: none;">Stop</button>
+	<button id="start" class="pad" title="Press to start record. A prompt window will pop up.">Start</button>
+	<button id="stop" class="pad" style="display: none;" title="Press to stop record">Stop</button>
 
-	<div id="time" style="display: inline-block; vertical-align: bottom; font-size: 20px; min-width: 100px; padding: 20px; padding-left: 0; line-height: 30px; text-align: left;">
+	<div id="time" class="pad">
 	00:00
 	</div>
 
-	<div id="settings" style="display: inline-block; vertical-align: bottom; padding: 20px; text-align: left;">
+	<div id="settings" class="pad" style="text-align: left;">
 		<div style="white-space: nowrap">
-			<input type="radio" name="audioSource" value="system" checked/>System audio<br/>
-			<input type="radio" name="audioSource" value="mike"/>Microphone
+			<input type="radio" name="audioSource" value="system" checked title="Use system's audio as the audio input"/>System audio<br/>
+			<input type="radio" name="audioSource" value="mike" /><span title="Use microphone as the audio input">Microphone</span>
 		</div>
 	</div>
+	
+	<a href="https://github.com/konyshev-dmitry/WebScreenCapture" class="pad" style="float: right" title="Code on GitHub">
+		<svg height="32" aria-hidden="true" viewBox="0 0 16 16" version="1.1" width="32" data-view-component="true">
+				<path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+		</svg>
+	</a>
 
 	</header>
 	<a href="#" id="download" style="display: none"></a>
