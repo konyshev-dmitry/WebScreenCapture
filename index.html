@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>WebScreenCapture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8" />
+<style>
+* {
+	font-family: 'Roboto Condensed'
+}
+		
+body, html {
+  text-align: center;
+	padding: 0;
+	margin: 0
+}
+
+button {
+  display: inline-block;
+  margin: 20px;
+	margin-left: 0;
+  font-size: 20px;
+  cursor: pointer;
+	vertical-align: bottom;
+	min-width: 60px
+}
+
+video {
+  border: 1px solid #CCC;
+  width: calc(100% - 22px);
+	margin: 10px;
+  background-color: #eee
+}
+
+header {
+	background: #CCC;
+	display: block;	
+}
+
+a#download {
+	display: block;
+	color: #3C0;
+	background: #333;
+	padding: 10px
+}
+
+</style>		
+</head>
+
+<body>
+	<header>
+
+	<button id="start">Start</button>
+	<button id="stop" style="display: none;">Stop</button>
+
+	<div id="time" style="display: inline-block; vertical-align: bottom; font-size: 20px; min-width: 100px; padding: 20px; padding-left: 0; line-height: 30px; text-align: left;">
+	00:00
+	</div>
+
+	<div id="settings" style="display: inline-block; vertical-align: bottom; padding: 20px; text-align: left;">
+		<div style="white-space: nowrap">
+			<input type="radio" name="audioSource" value="system" checked/>System audio<br/>
+			<input type="radio" name="audioSource" value="mike"/>Microphone
+		</div>
+	</div>
+
+	</header>
+	<a href="#" id="download" style="display: none"></a>
+	<video autoplay style=""></video>
+		
+
+<script>
+const start = document.getElementById("start")
+const stop = document.getElementById("stop")
+const video = document.querySelector("video")
+const download = document.getElementById("download")
+const settings = document.getElementById("settings")
+const time = document.getElementById("time")
+let recorder, stream
+
+let completeBlob = null
+let fileDateTime = ''
+let timer = null
+let timeStamp = null
+
+let mediaScreenConstraints = {
+    video: {
+			mediaSource: 'screen',
+      cursor: 'always',
+      resizeMode: 'crop-and-scale'
+    },
+		audio: false
+}
+
+let mediaScreenConstraintsWithAudio = {
+    video: {
+			mediaSource: 'screen',
+      cursor: 'always',
+      resizeMode: 'crop-and-scale'
+    },
+		audio: true
+}
+
+const mediaMicrophoneConstraints = {
+		audio: true,
+		video: false
+}
+
+function printDate() {
+    const temp = new Date()
+    return padStr(temp.getFullYear()) + '-' +
+                  padStr(1 + temp.getMonth()) + '-' +
+                  padStr(temp.getDate()) + '_' +
+                  padStr(temp.getHours()) + '-' +
+                  padStr(temp.getMinutes()) + '-' +
+                  padStr(temp.getSeconds())
+
+}
+
+function padStr(i) {
+    return ((i < 10) ? '0' : '') + i
+}
+
+function downloadBlob(blob, name = 'ScreenCapture.mkv') {
+	if (window.navigator &&
+      window.navigator.msSaveOrOpenBlob
+    ) return window.navigator.msSaveOrOpenBlob(blob)
+
+    const data = window.URL.createObjectURL(blob)
+
+    const link = document.createElement('a')
+    link.href = data
+    link.download = name
+
+    link.dispatchEvent(
+      new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        view: window
+      })
+    )
+
+    setTimeout(() => {
+      // For Firefox it is necessary to delay revoking the ObjectURL
+      window.URL.revokeObjectURL(data)
+      link.remove()
+    }, 100)
+}
+
+
+async function captureMicrophone() {
+  const stream = await navigator.mediaDevices.getUserMedia(mediaMicrophoneConstraints)
+  return stream
+}
+
+async function captureScreen(useScreenAudio = true) {
+  const screenStream = await navigator.mediaDevices.getDisplayMedia(useScreenAudio ? mediaScreenConstraintsWithAudio : mediaScreenConstraints)
+  return screenStream
+}
+
+async function startRecording() {
+	timeStamp = new Date()
+	fileDateTime = printDate()
+
+	let screenStream
+	let audioStream
+	if (document.querySelector('input[name="audioSource"]:checked').value === 'mike') {	
+		const screenStream = await captureScreen(false)
+		const audioStream = await captureMicrophone()
+		stream = new MediaStream([...screenStream.getTracks(), ...audioStream.getTracks()])
+	} else {
+		stream = await captureScreen(true)
+	}
+  recorder = new MediaRecorder(stream)
+
+  const chunks = []
+  recorder.ondataavailable = e => chunks.push(e.data)
+  recorder.onstop = e => {
+    completeBlob = new Blob(chunks, { type: chunks[0].type })
+    video.src = URL.createObjectURL(completeBlob)
+  }
+	recorder.onstart = e => {
+		timeStamp = new Date()
+		timer = setInterval(() => {
+			const elapsed = Math.round((new Date() - timeStamp) / 1000)
+			time.innerHTML = padStr(Math.floor(elapsed / 60)) + ':' + padStr(elapsed % 60)
+		}, 1000)
+	}
+  recorder.start()	
+}
+
+start.addEventListener("click", () => {
+  start.style.display = 'none'
+  stop.style.display = 'inline-block'
+	settings.style.opacity = 0
+	download.innerHTML = ''
+	download.style.display = 'none'
+  startRecording()
+	time.innerHTML = '00:00'
+})
+
+stop.addEventListener("click", () => {
+	
+  stop.style.display = 'none'
+  start.style.display = 'inline-block'
+	settings.style.opacity = 1
+
+  recorder.stop()
+	recorder.stream.getTracks().forEach(track => track.stop())
+	
+	download.innerHTML = 'Download "ScreenCapture ' + fileDateTime + '.mkv"'
+	download.style.display = 'block'
+	
+	clearInterval(timer)
+})
+
+download.addEventListener("click", () => {
+	downloadBlob(completeBlob, 'ScreenCapture ' + fileDateTime + '.mkv')
+})
+
+		</script>
+  </body>
+</html>
